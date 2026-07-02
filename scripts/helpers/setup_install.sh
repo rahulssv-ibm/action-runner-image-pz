@@ -16,7 +16,7 @@ run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMA
 
 if [[ "$IMAGE_OS" == *"ubuntu"* ]]; then
     # Add apt wrapper to implement retries
-    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt-mock.sh"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt-mock.sh"
     # echo "Setting user ubuntu with sudo privileges"
 
     # # Install Configure apt
