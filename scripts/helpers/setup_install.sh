@@ -213,5 +213,5 @@ fi
 # The cleanup script is executed after the reboot.
 "${INSTALLER_SCRIPT_FOLDER}/cleanup.sh"
 
-# Configure system settings
-run_script "${INSTALLER_SCRIPT_FOLDER}/configure-system.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+# # Configure system settings
+# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-system.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
