@@ -8,8 +8,8 @@ CURRENT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "${CURRENT_DIR}"/setup_vars.sh
 # shellcheck disable=SC1091
 source "${CURRENT_DIR}"/run_script.sh
-# Configure limits
-run_script "${INSTALLER_SCRIPT_FOLDER}/configure-limits.sh" 
+# # Configure limits
+# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-limits.sh" 
 
 # Configure environment
 # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMAGE_VERSION" "HELPER_SCRIPTS"
