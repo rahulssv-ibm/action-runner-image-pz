@@ -8,25 +8,25 @@ CURRENT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "${CURRENT_DIR}"/setup_vars.sh
 # shellcheck disable=SC1091
 source "${CURRENT_DIR}"/run_script.sh
-# # Configure limits
-# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-limits.sh" 
+# Configure limits
+run_script "${INSTALLER_SCRIPT_FOLDER}/configure-limits.sh" 
 
-# Configure environment
-# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMAGE_VERSION" "HELPER_SCRIPTS"
+Configure environment
+run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMAGE_VERSION" "HELPER_SCRIPTS"
 
 if [[ "$IMAGE_OS" == *"ubuntu"* ]]; then
     # Add apt wrapper to implement retries
     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt-mock.sh"
-    # echo "Setting user ubuntu with sudo privileges"
+    echo "Setting user ubuntu with sudo privileges"
 
-    # # Install Configure apt
-    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS"
+    # Install Configure apt
+    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS"
 
-    # run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-vital.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-vital.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-    # run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-common.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-common.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-dpkg.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-dpkg.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 elif [[ "$IMAGE_OS" == *"centos"* ]]; then
     # Add apt wrapper to implement retries
     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-yum-mock.sh"
@@ -50,14 +50,14 @@ SCRIPT_FILES=()
 if [ "$SETUP" == "minimal" ]; then
     # List of scripts to be executed for a minimal setup
     SCRIPT_FILES=(
-        # "install-actions-cache.sh"
-        # "install-dotnetcore-sdk.sh"
-        # "install-runner-package.sh"
+        "install-actions-cache.sh"
+        "install-dotnetcore-sdk.sh"
+        "install-runner-package.sh"
         "install-git.sh"
-        # "install-git-lfs.sh"
-        # "install-github-cli.sh"
-        # "install-python.sh"
-        # "install-zstd.sh"
+        "install-git-lfs.sh"
+        "install-github-cli.sh"
+        "install-python.sh"
+        "install-zstd.sh"
     )
 elif [ "$SETUP" == "complete" ]; then
     echo "Starting complete setup for $IMAGE_VERSION"
@@ -185,33 +185,33 @@ else
     exit 1
 fi
 
-# # Loop through all scripts and execute them
-# for SCRIPT_FILE in "${SCRIPT_FILES[@]}"; do
-#     SCRIPT_PATH="${INSTALLER_SCRIPT_FOLDER}/${SCRIPT_FILE}"
-#     run_script "$SCRIPT_PATH" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-# done
+# Loop through all scripts and execute them
+for SCRIPT_FILE in "${SCRIPT_FILES[@]}"; do
+    SCRIPT_PATH="${INSTALLER_SCRIPT_FOLDER}/${SCRIPT_FILE}"
+    run_script "$SCRIPT_PATH" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+done
 
-# # Install and configure snap and lxd unless skipped
-# if [ "${SKIP_SNAP_LXD:-false}" != "true" ]; then
-#     run_script "${INSTALLER_SCRIPT_FOLDER}/install-snap.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-#     run_script "${INSTALLER_SCRIPT_FOLDER}/install-lxd.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-#     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-snap.sh" "HELPER_SCRIPTS" "ARCH"
-# fi
+# Install and configure snap and lxd unless skipped
+if [ "${SKIP_SNAP_LXD:-false}" != "true" ]; then
+    run_script "${INSTALLER_SCRIPT_FOLDER}/install-snap.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/install-lxd.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-snap.sh" "HELPER_SCRIPTS" "ARCH"
+fi
 
-# # run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
     
-# run_script "${INSTALLER_SCRIPT_FOLDER}/install-pipx-packages.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+run_script "${INSTALLER_SCRIPT_FOLDER}/install-pipx-packages.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-# run_script "${INSTALLER_SCRIPT_FOLDER}/install-homebrew.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+run_script "${INSTALLER_SCRIPT_FOLDER}/install-homebrew.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-# Configure image data
-# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-image-data.sh" "IMAGE_VERSION" "IMAGEDATA_FILE"
+Configure image data
+run_script "${INSTALLER_SCRIPT_FOLDER}/configure-image-data.sh" "IMAGE_VERSION" "IMAGEDATA_FILE"
 
-# echo 'Rebooting VM...'
-# sudo reboot
+echo 'Rebooting VM...'
+sudo reboot
 
 # The cleanup script is executed after the reboot.
 "${INSTALLER_SCRIPT_FOLDER}/cleanup.sh"
 
-# # Configure system settings
-# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-system.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+# Configure system settings
+run_script "${INSTALLER_SCRIPT_FOLDER}/configure-system.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
