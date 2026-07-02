@@ -73,8 +73,8 @@ if [[ -f /etc/default/motd-news ]]; then
 fi
 # Remove fwupd if installed. We're running on VMs in Azure and the fwupd package is not needed.
 # Leaving it enable means periodic refreshes show in network traffic and firewall logs
-# Check if fwupd-refresh.timer exists in systemd
-if systemctl list-unit-files fwupd-refresh.timer &>/dev/null; then
+# Check if fwupd-refresh.timer exists in systemd (no-op in containers where systemd is absent)
+if command -v systemctl > /dev/null 2>&1 && systemctl list-unit-files fwupd-refresh.timer &>/dev/null; then
     echo "Masking fwupd-refresh.timer..."
     systemctl mask fwupd-refresh.timer
 fi
