@@ -111,16 +111,19 @@ cat <<EOF | sudo tee /etc/tmpfiles.d/docker.conf
 L /run/docker.sock - - - - root docker 0770
 EOF
 
-# Reload systemd-tmpfiles to apply the new configuration
-systemd-tmpfiles --create /etc/tmpfiles.d/docker.conf
+# Systemd-dependent steps: skip in containers where systemd/dockerd are absent at build time
+if command -v systemctl > /dev/null 2>&1; then
+    # Reload systemd-tmpfiles to apply the new configuration
+    systemd-tmpfiles --create /etc/tmpfiles.d/docker.conf
 
-# Enable docker.service
-systemctl is-active --quiet docker.service || systemctl start docker.service
-systemctl is-enabled --quiet docker.service || systemctl enable docker.service
+    # Enable docker.service
+    systemctl is-active --quiet docker.service || systemctl start docker.service
+    systemctl is-enabled --quiet docker.service || systemctl enable docker.service
 
-# Docker daemon takes time to come up after installing
-sleep 10
-docker info
+    # Docker daemon takes time to come up after installing
+    sleep 10
+    docker info
+fi
 
 if [[ "$ARCH" != "ppc64le" && "$ARCH" != "s390x" ]]; then 
     if ! is_ubuntu22; then
