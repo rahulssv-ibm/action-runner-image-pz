@@ -16,17 +16,17 @@ run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMA
 
 if [[ "$IMAGE_OS" == *"ubuntu"* ]]; then
     # Add apt wrapper to implement retries
-    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt-mock.sh"
-    echo "Setting user ubuntu with sudo privileges"
+    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt-mock.sh"
+    # echo "Setting user ubuntu with sudo privileges"
 
-    # Install Configure apt
-    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS"
+    # # Install Configure apt
+    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-apt.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS"
 
-    run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-vital.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    # run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-vital.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-    run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-common.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    # run_script "${INSTALLER_SCRIPT_FOLDER}/install-apt-common.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-dpkg.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+    # run_script "${INSTALLER_SCRIPT_FOLDER}/configure-dpkg.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 elif [[ "$IMAGE_OS" == *"centos"* ]]; then
     # Add apt wrapper to implement retries
     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-yum-mock.sh"
@@ -50,9 +50,9 @@ SCRIPT_FILES=()
 if [ "$SETUP" == "minimal" ]; then
     # List of scripts to be executed for a minimal setup
     SCRIPT_FILES=(
-        "install-actions-cache.sh"
-        "install-dotnetcore-sdk.sh"
-        "install-runner-package.sh"
+        # "install-actions-cache.sh"
+        # "install-dotnetcore-sdk.sh"
+        # "install-runner-package.sh"
         "install-git.sh"
         "install-git-lfs.sh"
         "install-github-cli.sh"
