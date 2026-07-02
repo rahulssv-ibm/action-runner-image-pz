@@ -12,7 +12,7 @@ source "${CURRENT_DIR}"/run_script.sh
 run_script "${INSTALLER_SCRIPT_FOLDER}/configure-limits.sh" 
 
 # Configure environment
-run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMAGE_VERSION" "HELPER_SCRIPTS"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-environment.sh" "IMAGE_OS" "IMAGE_VERSION" "HELPER_SCRIPTS"
 
 if [[ "$IMAGE_OS" == *"ubuntu"* ]]; then
     # Add apt wrapper to implement retries
