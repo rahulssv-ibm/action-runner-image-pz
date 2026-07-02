@@ -13,8 +13,8 @@ apt-get clean
 rm -rf /tmp/*
 rm -rf /root/.cache
 
-# journalctl
-if command -v journalctl; then
+# journalctl — binary exists even in containers, but journal socket may not
+if command -v journalctl > /dev/null 2>&1 && journalctl --no-pager -n0 > /dev/null 2>&1; then
     journalctl --rotate
     journalctl --vacuum-time=1s
 fi
