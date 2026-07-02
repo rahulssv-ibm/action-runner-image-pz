@@ -54,10 +54,10 @@ if [ "$SETUP" == "minimal" ]; then
         # "install-dotnetcore-sdk.sh"
         # "install-runner-package.sh"
         "install-git.sh"
-        "install-git-lfs.sh"
-        "install-github-cli.sh"
-        "install-python.sh"
-        "install-zstd.sh"
+        # "install-git-lfs.sh"
+        # "install-github-cli.sh"
+        # "install-python.sh"
+        # "install-zstd.sh"
     )
 elif [ "$SETUP" == "complete" ]; then
     echo "Starting complete setup for $IMAGE_VERSION"
@@ -198,7 +198,7 @@ if [ "${SKIP_SNAP_LXD:-false}" != "true" ]; then
     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-snap.sh" "HELPER_SCRIPTS" "ARCH"
 fi
 
-run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
     
 run_script "${INSTALLER_SCRIPT_FOLDER}/install-pipx-packages.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
