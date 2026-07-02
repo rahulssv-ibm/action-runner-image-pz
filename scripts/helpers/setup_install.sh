@@ -185,24 +185,24 @@ else
     exit 1
 fi
 
-# Loop through all scripts and execute them
-for SCRIPT_FILE in "${SCRIPT_FILES[@]}"; do
-    SCRIPT_PATH="${INSTALLER_SCRIPT_FOLDER}/${SCRIPT_FILE}"
-    run_script "$SCRIPT_PATH" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-done
+# # Loop through all scripts and execute them
+# for SCRIPT_FILE in "${SCRIPT_FILES[@]}"; do
+#     SCRIPT_PATH="${INSTALLER_SCRIPT_FOLDER}/${SCRIPT_FILE}"
+#     run_script "$SCRIPT_PATH" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+# done
 
-# Install and configure snap and lxd unless skipped
-if [ "${SKIP_SNAP_LXD:-false}" != "true" ]; then
-    run_script "${INSTALLER_SCRIPT_FOLDER}/install-snap.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-    run_script "${INSTALLER_SCRIPT_FOLDER}/install-lxd.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
-    run_script "${INSTALLER_SCRIPT_FOLDER}/configure-snap.sh" "HELPER_SCRIPTS" "ARCH"
-fi
+# # Install and configure snap and lxd unless skipped
+# if [ "${SKIP_SNAP_LXD:-false}" != "true" ]; then
+#     run_script "${INSTALLER_SCRIPT_FOLDER}/install-snap.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+#     run_script "${INSTALLER_SCRIPT_FOLDER}/install-lxd.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH" "IMAGE_FOLDER"
+#     run_script "${INSTALLER_SCRIPT_FOLDER}/configure-snap.sh" "HELPER_SCRIPTS" "ARCH"
+# fi
 
-# run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+# # run_script "${INSTALLER_SCRIPT_FOLDER}/install-docker.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
     
-run_script "${INSTALLER_SCRIPT_FOLDER}/install-pipx-packages.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/install-pipx-packages.sh" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
-run_script "${INSTALLER_SCRIPT_FOLDER}/install-homebrew.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/install-homebrew.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
 # Configure image data
 run_script "${INSTALLER_SCRIPT_FOLDER}/configure-image-data.sh" "IMAGE_VERSION" "IMAGEDATA_FILE"
