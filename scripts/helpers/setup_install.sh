@@ -205,7 +205,7 @@ fi
 # run_script "${INSTALLER_SCRIPT_FOLDER}/install-homebrew.sh" "DEBIAN_FRONTEND" "HELPER_SCRIPTS" "INSTALLER_SCRIPT_FOLDER" "ARCH"
 
 # Configure image data
-run_script "${INSTALLER_SCRIPT_FOLDER}/configure-image-data.sh" "IMAGE_VERSION" "IMAGEDATA_FILE"
+# run_script "${INSTALLER_SCRIPT_FOLDER}/configure-image-data.sh" "IMAGE_VERSION" "IMAGEDATA_FILE"
 
 # echo 'Rebooting VM...'
 # sudo reboot
