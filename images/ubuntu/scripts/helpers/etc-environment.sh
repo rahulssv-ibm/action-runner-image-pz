@@ -26,8 +26,11 @@ replace_etc_environment_variable() {
     local variable_name=$1
     local variable_value=$2
 
-    # modify /etc/environemnt in place by replacing a string that begins with variable_name
-    sudo sed -i -e "s%^${variable_name}=.*$%${variable_name}=${variable_value}%" /etc/environment
+    # ponytail: sed -i renames the file, which fails on bind-mounts/overlayfs (LXD containers).
+    # Write transformed content back through tee so the inode is preserved.
+    local content
+    content=$(sed -e "s%^${variable_name}=.*$%${variable_name}=${variable_value}%" /etc/environment)
+    echo "$content" | sudo tee /etc/environment > /dev/null
 }
 
 set_etc_environment_variable() {
