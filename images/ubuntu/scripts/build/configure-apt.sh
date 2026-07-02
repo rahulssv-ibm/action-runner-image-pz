@@ -8,13 +8,15 @@
 source "$HELPER_SCRIPTS"/os.sh
 source "$HELPER_SCRIPTS"/install.sh
 
-# Stop and disable apt-daily upgrade services;
-systemctl stop apt-daily.timer
-systemctl disable apt-daily.timer
-systemctl disable apt-daily.service
-systemctl stop apt-daily-upgrade.timer
-systemctl disable apt-daily-upgrade.timer
-systemctl disable apt-daily-upgrade.service
+# Stop and disable apt-daily upgrade services (no-op in containers where systemd is absent)
+if command -v systemctl > /dev/null 2>&1; then
+    systemctl stop apt-daily.timer
+    systemctl disable apt-daily.timer
+    systemctl disable apt-daily.service
+    systemctl stop apt-daily-upgrade.timer
+    systemctl disable apt-daily-upgrade.timer
+    systemctl disable apt-daily-upgrade.service
+fi
 
 # Enable retry logic for apt up to 10 times
 echo "APT::Acquire::Retries \"10\";" > /etc/apt/apt.conf.d/80-retries
