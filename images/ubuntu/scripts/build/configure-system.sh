@@ -39,5 +39,7 @@ if is_ubuntu24; then
 # Prevent needrestart from restarting the provisioner service.
 # Currently only happens on Ubuntu 24.04, so make it conditional for the time being
 # as configuration is too different between Ubuntu versions.
-    sed -i '/^\s*};/i \    qr(^runner-provisioner) => 0,' /etc/needrestart/needrestart.conf
+    # ponytail: sed -i renames file, fails on LXD /etc (EBUSY); tee back to same inode.
+    content=$(sed '/^\s*};/i \    qr(^runner-provisioner) => 0,' /etc/needrestart/needrestart.conf)
+    echo "$content" | tee /etc/needrestart/needrestart.conf > /dev/null
 fi

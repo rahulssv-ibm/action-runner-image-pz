@@ -9,6 +9,17 @@
 source "$HELPER_SCRIPTS"/os.sh
 source "$HELPER_SCRIPTS"/etc-environment.sh
 
+# ponytail: sed -i creates a temp file then renames it, which fails on LXD
+# container /etc (overlayfs/bind-mount, cross-device rename -> EBUSY).
+# Use this helper everywhere instead: transforms in-place via tee, no rename.
+sed_inplace() {
+    local expr=$1
+    local file=$2
+    local content
+    content=$(sed "$expr" "$file")
+    echo "$content" | tee "$file" > /dev/null
+}
+
 # Set ImageVersion and ImageOS env variables
 set_etc_environment_variable "ImageVersion" "${IMAGE_VERSION}"
 set_etc_environment_variable "ImageOS" "${IMAGE_OS}"
@@ -23,13 +34,13 @@ set_etc_environment_variable "XDG_CONFIG_HOME" '$HOME/.config'
 
 # Change waagent entries to use /mnt for swap file
 if [[ -f /etc/waagent.conf ]]; then
-    sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
-    sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
-    sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
+    sed_inplace 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
+    sed_inplace 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
+    sed_inplace 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
 fi
 
 # Add localhost alias to ::1 IPv6
-sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
+sed_inplace 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 
 # Prepare directory and env variable for toolcache
 AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache
@@ -58,7 +69,7 @@ echo 'ACTION=="add", SUBSYSTEM=="module", KERNEL=="nf_conntrack", RUN+="/usr/sbi
 
 # Disable motd updates metadata
 if [[ -f /etc/default/motd-news ]]; then
-    sed -i 's/ENABLED=1/ENABLED=0/g' /etc/default/motd-news
+    sed_inplace 's/ENABLED=1/ENABLED=0/g' /etc/default/motd-news
 fi
 # Remove fwupd if installed. We're running on VMs in Azure and the fwupd package is not needed.
 # Leaving it enable means periodic refreshes show in network traffic and firewall logs
@@ -71,11 +82,11 @@ fi
 # This is a legacy check, leaving for earlier versions of Ubuntu
 # If fwupd config still exists, disable the motd updates
 if [[ -f "/etc/fwupd/daemon.conf" ]]; then
-    sed -i 's/UpdateMotd=true/UpdateMotd=false/g' /etc/fwupd/daemon.conf
+    sed_inplace 's/UpdateMotd=true/UpdateMotd=false/g' /etc/fwupd/daemon.conf
 fi
 
 # Disable to load providers
 # https://github.com/microsoft/azure-pipelines-agent/issues/3834
 if is_ubuntu22; then
-    sed -i 's/openssl_conf = openssl_init/#openssl_conf = openssl_init/g' /etc/ssl/openssl.cnf
+    sed_inplace 's/openssl_conf = openssl_init/#openssl_conf = openssl_init/g' /etc/ssl/openssl.cnf
 fi
