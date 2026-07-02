@@ -11,9 +11,24 @@ source "$HELPER_SCRIPTS"/install.sh
 GIT_REPO="ppa:git-core/ppa"
 
 ## Install git
-add-apt-repository $GIT_REPO -y
-update_dpkgs
-install_dpkgs git
+# The git-core PPA only publishes amd64/arm64 packages; on other arches fall
+# back to the Ubuntu archive which already ships a recent git.
+if [ "$ARCH" = "ppc64le" ] || [ "$ARCH" = "s390x" ]; then
+    update_dpkgs
+    install_dpkgs git
+else
+    # add-apt-repository requires software-properties-common
+    install_dpkgs software-properties-common
+    add-apt-repository $GIT_REPO -y
+    update_dpkgs
+    install_dpkgs git
+
+    # Remove source repo's
+    add-apt-repository --remove -y $GIT_REPO
+
+    # Document apt source repo's
+    echo "git-core $GIT_REPO" >> "$HELPER_SCRIPTS"/apt-sources.txt
+fi
 
 # Git version 2.35.2 introduces security fix that breaks action\checkout https://github.com/actions/checkout/issues/760
 cat <<EOF >> /etc/gitconfig
@@ -23,12 +38,6 @@ EOF
 
 # Install git-ftp
 install_dpkgs git-ftp
-
-# Remove source repo's
-add-apt-repository --remove -y $GIT_REPO
-
-# Document apt source repo's
-echo "git-core $GIT_REPO" >> "$HELPER_SCRIPTS"/apt-sources.txt
 
 # Add well-known SSH host keys to known_hosts
 ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /etc/ssh/ssh_known_hosts
