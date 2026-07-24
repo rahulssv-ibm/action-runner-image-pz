@@ -182,7 +182,22 @@ build_image() {
   incus ls
 
   wait_for_container "${BUILD_CONTAINER}"
-  
+
+  # Cloud images need netplan injected since cloud-init can't detect the Incus
+  # data source in containers.
+  if [[ "${USE_CLOUD_IMG:-true}" == "true" ]]; then
+    msg "Injecting netplan DHCP config..."
+    incus exec "${BUILD_CONTAINER}" -- tee /etc/netplan/99-dhcp.yaml > /dev/null <<'EOF'
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+EOF
+    incus exec "${BUILD_CONTAINER}" -- chmod 600 /etc/netplan/99-dhcp.yaml
+    incus exec "${BUILD_CONTAINER}" -- netplan apply
+  fi
+
   msg "Mapping localhost..."
   incus exec "${BUILD_CONTAINER}" -- sh -c "echo '127.0.1.1 ${BUILD_CONTAINER}' >> /etc/hosts"
 
@@ -340,22 +355,22 @@ run() {
 
   local BASE_ALIAS="ubuntu-${IMAGE_VERSION}"
 
-  if incus image info "${BASE_ALIAS}" &>/dev/null; then
-    echo "Base image '${BASE_ALIAS}' found. Skipping import."
-  else
-    echo "Base image '${BASE_ALIAS}' not found. Starting import..."
-    # shellcheck disable=SC1091
-    source "${HELPERS_DIR}/import_ubuntu_base_images.sh"
-    if ! import_ubuntu_base_images "container" "${IMAGE_VERSION}"; then
-      echo "Error: Failed to import base image '${BASE_ALIAS}'. Aborting." >&2
-      return 1
-    fi
-    if ! incus image info "${BASE_ALIAS}" &>/dev/null; then
-      echo "Error: Base image '${BASE_ALIAS}' not found in Incus after import. Aborting." >&2
-      return 1
-    fi
-    echo "Base image '${BASE_ALIAS}' confirmed in Incus."
+  # shellcheck disable=SC1091
+  source "${HELPERS_DIR}/incus-common.sh"
+
+  # import_ubuntu_base_image handles idempotency internally via
+  # check_or_replace_image with the correct source tag for whichever
+  # import path it selects (cloud-img, incus-img, or distrobuilder).
+  if ! import_ubuntu_base_image "container" "${IMAGE_VERSION}"; then
+    echo "Error: Failed to import base image '${BASE_ALIAS}'. Aborting." >&2
+    return 1
   fi
+
+  if ! incus image info "${BASE_ALIAS}" &>/dev/null; then
+    echo "Error: Base image '${BASE_ALIAS}' not found in Incus after import. Aborting." >&2
+    return 1
+  fi
+  echo "Base image '${BASE_ALIAS}' confirmed in Incus."
   
   # Now build the container image
   build_image "$@"

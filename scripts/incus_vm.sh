@@ -363,6 +363,22 @@ build_image() {
 
   incus ls
 
+  # Cloud images need a config drive and network config injected before first
+  # start since they lack the incus-agent.
+  if [[ "${USE_CLOUD_IMG:-true}" == "true" ]]; then
+    msg "Attaching cloud-init config drive..."
+    incus config device add "${BUILD_VM}" cloud-init disk source=cloud-init:config
+
+    msg "Setting cloud-init DHCP network config..."
+    incus config set "${BUILD_VM}" cloud-init.network-config="network:
+  version: 2
+  ethernets:
+    id0:
+      match:
+        name: en*
+      dhcp4: true"
+  fi
+
   # Configure CPU and memory resources
   configure_cpu_resources "${BUILD_VM}" 4
   configure_memory_resources "${BUILD_VM}" 4096 512
@@ -377,17 +393,19 @@ build_image() {
   msg "Checking current partitions..."
   incus exec "${BUILD_VM}" -- cat /proc/partitions
 
-  # Determine root partition number based on architecture:
-  # ppc64le: sda1=root, sda2=PReP(8MB raw)  → root is partition 1
-  # s390x:   sda1=boot(ext4), sda2=root      → root is partition 2
-  # x86_64/aarch64: sda1=EFI, sda2=root      → root is partition 2
-  local ROOT_PART=2
-  if [[ "${ARCH}" == "ppc64le" ]]; then
-    ROOT_PART=1
-  fi
+  # Detect root partition dynamically to avoid hard-coding sda1 vs sda2.
+  local ROOT_DEV ROOT_DISK ROOT_PART_NUM
+  ROOT_DEV=$(incus exec "${BUILD_VM}" -- findmnt -n -o SOURCE /)
+  ROOT_DISK=$(echo "$ROOT_DEV" | sed 's/[0-9]*$//')
+  ROOT_PART_NUM=$(echo "$ROOT_DEV" | grep -oE '[0-9]+$')
 
-  msg "Expanding root partition (partition ${ROOT_PART}) on /dev/sda..."
-  incus exec "${BUILD_VM}" -- growpart /dev/sda "${ROOT_PART}" || true
+  msg "Detected root device: ${ROOT_DEV} (disk: ${ROOT_DISK}, partition: ${ROOT_PART_NUM})"
+
+  msg "Expanding root partition (partition ${ROOT_PART_NUM}) on ${ROOT_DISK}..."
+  incus exec "${BUILD_VM}" -- growpart "${ROOT_DISK}" "${ROOT_PART_NUM}" || true
+
+  # Enable cloud-init-local if present (safe no-op when absent).
+  incus exec "${BUILD_VM}" -- systemctl enable --now cloud-init-local 2>/dev/null || true
 
   msg "Rebooting VM to apply partition changes..."
   incus restart "${BUILD_VM}"
@@ -395,8 +413,8 @@ build_image() {
   wait_for_vm "${BUILD_VM}"
 
   msg "Resizing root filesystem..."
-  incus exec "${BUILD_VM}" -- resize2fs "/dev/sda${ROOT_PART}"
-  
+  incus exec "${BUILD_VM}" -- resize2fs "${ROOT_DEV}"
+
   msg "Final Disk Usage:"
   incus exec "${BUILD_VM}" -- df -h
 
@@ -559,9 +577,25 @@ run() {
   # shellcheck disable=SC2154
   local BASE_ALIAS="ubuntu-${IMAGE_VERSION}-vm"
 
+  # shellcheck disable=SC1091
+  source "${HELPERS_DIR}/incus-common.sh"
+
   if [[ "${SKIP_INCUS_BASE_IMG}" == "true" ]]; then
     echo "Skipping base image import (--skip-incus-base-img)"
-  elif incus image info "${BASE_ALIAS}" &>/dev/null; then
+  else
+    # import_ubuntu_base_image handles idempotency internally via
+    # check_or_replace_image with the correct source tag for whichever
+    # import path it selects (cloud-img, incus-img, or distrobuilder).
+    if ! import_ubuntu_base_image "vm" "${IMAGE_VERSION}"; then
+      echo "Error: Failed to build/import base image '${BASE_ALIAS}'. Aborting." >&2
+      return 1
+    fi
+
+    if ! incus image info "${BASE_ALIAS}" &>/dev/null; then
+      echo "Error: Base image '${BASE_ALIAS}' not found in Incus after import. Aborting." >&2
+      return 1
+    fi
+
     # Verify the existing image is actually a virtual-machine, not a container
     local BASE_TYPE
     BASE_TYPE=$(incus image info "${BASE_ALIAS}" | awk '/^Type:/{print $2}')
@@ -570,21 +604,6 @@ run() {
       echo "Delete it with: sudo incus image delete ${BASE_ALIAS}" >&2
       return 1
     fi
-    echo "Base image '${BASE_ALIAS}' found (type: virtual-machine). Skipping import."
-  else
-    echo "Base image '${BASE_ALIAS}' not found. Building now..."
-    # shellcheck disable=SC1091
-    source "${HELPERS_DIR}/import_ubuntu_base_images.sh"
-    if ! import_ubuntu_base_images "vm" "${IMAGE_VERSION}"; then
-      echo "Error: Failed to build/import base image '${BASE_ALIAS}'. Aborting." >&2
-      return 1
-    fi
-    # Verify the image actually landed in Incus before proceeding
-    if ! incus image info "${BASE_ALIAS}" &>/dev/null; then
-      echo "Error: Base image '${BASE_ALIAS}' not found in Incus after import. Aborting." >&2
-      return 1
-    fi
-    echo "Base image '${BASE_ALIAS}' confirmed in Incus."
   fi
 
   # Now build the VM image

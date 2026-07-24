@@ -27,6 +27,8 @@ usage() {
     echo "  --skip-incus-snapshot   Skip Incus snapshot"
     echo "  --delete-incus-img      Delete the existing Incus image before building"
     echo "  --skip-incus-base-img   Skip building/importing the Incus base OS image"
+    echo "  --use-cloud-img         Use official Ubuntu cloud images"
+    echo "  --use-incus-img         Use Incus/distrobuilder minimal images"
     echo "  -h, --help              Show this help"
     echo ""
     # Use return 1 instead of exit 1 because this script is sourced
@@ -48,6 +50,8 @@ SKIP_INCUS_PUBLISH=false
 SKIP_INCUS_SNAPSHOT=false
 DELETE_INCUS_IMG=false
 SKIP_INCUS_BASE_IMG=false
+USE_CLOUD_IMG=true
+USE_INCUS_IMG=false
 ARCH=${ARCH:-$(uname -m)}
 PATCH_FILE="${PATCH_FILE:-runner-sdk8-${ARCH}.patch}"
 
@@ -127,6 +131,18 @@ while [[ $# -gt 0 ]]; do
         --skip-incus-base-img)
             # shellcheck disable=SC2034
             SKIP_INCUS_BASE_IMG=true
+            forward_args+=("$1")
+            ;;
+        --use-cloud-img)
+            # shellcheck disable=SC2034
+            USE_CLOUD_IMG=true
+            USE_INCUS_IMG=false
+            forward_args+=("$1")
+            ;;
+        --use-incus-img)
+            # shellcheck disable=SC2034
+            USE_INCUS_IMG=true
+            USE_CLOUD_IMG=false
             forward_args+=("$1")
             ;;
         -h|--help)
