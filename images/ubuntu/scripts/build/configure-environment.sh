@@ -38,6 +38,12 @@ set_etc_environment_variable "AGENT_TOOLSDIRECTORY" "${AGENT_TOOLSDIRECTORY}"
 set_etc_environment_variable "RUNNER_TOOL_CACHE" "${AGENT_TOOLSDIRECTORY}"
 chmod -R 777 $AGENT_TOOLSDIRECTORY
 
+# Disable IPv6 — IBM Cloud VPC does not route IPv6 traffic.
+# Without this, applications may resolve dual-stack hostnames to IPv6 addresses
+# and attempt connections that go nowhere, causing intermittent timeouts.
+echo 'net.ipv6.conf.all.disable_ipv6=1' | tee -a /etc/sysctl.conf
+echo 'net.ipv6.conf.default.disable_ipv6=1' | tee -a /etc/sysctl.conf
+
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
 # https://www.suse.com/support/kb/doc/?id=000016692
 echo 'vm.max_map_count=262144' | tee -a /etc/sysctl.conf
