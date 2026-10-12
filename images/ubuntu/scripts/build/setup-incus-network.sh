@@ -79,12 +79,24 @@ else
 
         if [ "$STORAGE_EXISTS" = "false" ]; then
             echo "[INFO] Creating storage pool default..."
-            /usr/local/bin/incus storage create default lvm \
-                source=vg_incus \
-                lvm.thinpool_name=IncusThinPool \
-                size=100GiB \
-                volume.size=60GiB \
-                --description="Incus LVM storage pool for $ARCH"
+            if [ "$ARCH" = "ppc64le" ]; then
+                # vg_lxc is pre-created on the attached data disk (shared with LXD).
+                # No size= arg: the VG already exists, Incus must not try to resize it.
+                /usr/local/bin/incus storage create default lvm \
+                    source=vg_lxc \
+                    lvm.vg_name=vg_lxc \
+                    lvm.thinpool_name=LXDThinPool \
+                    lvm.vg.force_reuse=true \
+                    volume.size=150GiB \
+                    --description="Incus LVM storage pool sharing vg_lxc with LXD"
+            else
+                /usr/local/bin/incus storage create default lvm \
+                    source=vg_incus \
+                    lvm.thinpool_name=IncusThinPool \
+                    size=100GiB \
+                    volume.size=60GiB \
+                    --description="Incus LVM storage pool for $ARCH"
+            fi
         fi
     fi
 
@@ -97,9 +109,10 @@ else
         /usr/local/bin/incus profile device add default eth0 nic name=eth0 network=incusbr0
 
     /usr/local/bin/incus profile set default security.nesting=true
-    /usr/local/bin/incus profile set default security.syscalls.deny_default=false
     if [ "$ARCH" = "ppc64le" ]; then
-        /usr/local/bin/incus profile set default limits.memory=16GiB
-        /usr/local/bin/incus profile set default raw.qemu="-m 16384M,slots=0,maxmem=16384M"
+        /usr/local/bin/incus profile set default boot.autostart=true
+        /usr/local/bin/incus profile set default limits.memory.hotplug=false
+        /usr/local/bin/incus profile set default linux.kernel_modules=ip_vs,ip_vs_rr,ip_vs_wrr,ip_vs_sh,ip_tables,ip6_tables,netlink_diag,nf_nat,overlay,br_netfilter
+        /usr/local/bin/incus profile set default raw.lxc="$(printf 'lxc.mount.auto=proc:rw sys:rw cgroup:rw\nlxc.cgroup.devices.allow=a\nlxc.cap.drop=')"
     fi
 fi

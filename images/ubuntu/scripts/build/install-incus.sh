@@ -26,6 +26,7 @@ CONFIG_FILE="${REPO_ROOT}/scripts/assets/incus_init_host_${ARCH}.yml"
 
 # Version configuration (can be overridden via environment variables)
 RAFT_VERSION="${RAFT_VERSION:-v0.22.1}"
+LXC_VERSION="${LXC_VERSION:-v6.0.6}"
 INCUS_VERSION="${INCUS_VERSION:-v7.0.1}"
 
 # LVM configuration (can be overridden via environment variables)
@@ -34,8 +35,12 @@ LVM_LOOP_SIZE="${LVM_LOOP_SIZE:-200G}"
 LVM_VG_NAME="${LVM_VG_NAME:-vg_incus}"
 LVM_LOOP_FILE="/var/lib/incus/disks/incus-lvm.img"
 
+# ppc64le: vg_lxc is pre-created on the attached data disk by create_disk_link.sh
+# and shared with LXD; no loop file is needed.
+[ "$ARCH" = "ppc64le" ] && LVM_VG_NAME="${LVM_VG_NAME:-vg_lxc}"
+
 # Export so sourced step scripts can access them
-export ARCH RAFT_VERSION INCUS_VERSION USE_LVM LVM_LOOP_SIZE LVM_VG_NAME LVM_LOOP_FILE CONFIG_FILE
+export ARCH RAFT_VERSION LXC_VERSION INCUS_VERSION USE_LVM LVM_LOOP_SIZE LVM_VG_NAME LVM_LOOP_FILE CONFIG_FILE
 
 # --------------------------------------------------
 # Skip build/install if Incus is already installed and daemon is healthy
@@ -110,6 +115,12 @@ source "${SCRIPT_DIR}/install-raft.sh"
 # --------------------------------------------------
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/install-cowsql.sh"
+
+# --------------------------------------------------
+# Step 2.5: Build and install liblxc with seccomp
+# --------------------------------------------------
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/install-liblxc.sh"
 
 # --------------------------------------------------
 # Step 3: Build and install Incus binary
